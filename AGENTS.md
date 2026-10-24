@@ -1,5 +1,7 @@
 # AGENTS.md — Zircon 智能体协作指引
 
+本 fork／repo 的已授權里程碑交付與對人回報統一依[共用規則](https://github.com/fallrising/desk/blob/main/docs/delivery-and-handoff.md)；原有必要驗證及審查繼續適用，對其他 owner 或上游 repo 不授權。
+
 本文件供所有智能体（AI agent）在 Zircon 仓库工作时参考。
 
 ## 查找文档与资料
@@ -120,8 +122,7 @@ godot-mono --path /home/tetsuya/development/Zircon/GodotClient -- --server 127.0
 ### 开发-测试分工与提交纪律（重要，所有流程都按这个来）
 
 - **开发只在 82（debian，本机）进行**；其他机器一律只做测试，不在这台机上开发。
-- **每次工作改完，立刻 commit + push**。其他机器靠拉取已提交代码测试；
-  不提交，它们就永远看不到改动。
+- **为远程验证提交到工作分支；里程碑交付走 PR。** 其他机器拉取已提交代码测试；验证所需的分支提交不等于里程碑完成。必要验证／审查通过后，主导依上方共用规则完成 PR、合并与远端回读。
 - 测试链路（测试机执行 `bash login_game.sh remote 192.168.3.82`）：
   - **服务端**：SSH 到 82，从 `82:/home/tetsuya/development/zircon` 的**工作区**构建并重启。
     未提交的服务端改动**也会生效**。
@@ -134,7 +135,7 @@ godot-mono --path /home/tetsuya/development/Zircon/GodotClient -- --server 127.0
   - `git worktree add /tmp/<name> HEAD && (cd /tmp/<name> && dotnet build GodotClient/ZirconClient.csproj)`
   - `GameScene.cs` 等文件常有他任务/他人在改的内容；只 stage 本次任务的 hunk
     （`git diff` 过滤出本任务的 hunk 后 `git apply --cached`），不要把别人的 WIP 一起提交。
-- 推送远程是 `origin`（iamcheyan/Zircon fork）；`upstream` 是 Suprcode/Zircon，**只读，不要推**。
+- 当前治理修改与交付目标是 `fallrising/Zircon-Godot`；先核对实际 remote URL，只向该 repo 的工作分支推送并走 PR。既有其他 fork／Suprcode 上游不因本规则取得写入授权。
 - 不要触碰原版 `Client/` 源码（除非通过 `NoColourKey` 机制等明确手段）
 - 用 `dotnet build GodotClient/ZirconClient.csproj` 验证 Godot 端修复
 - 用 `hub` 启动/停止服务（`zircon-dev`、`zircon-server`）
