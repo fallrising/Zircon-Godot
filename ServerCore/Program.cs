@@ -46,12 +46,9 @@ namespace Server
             // We check EnvirThread why when SEnvir is full stoped, set this to null...
             while (SEnvir.EnvirThread != null)
             {
-                var command = Console.ReadLine();
-                if (command == null)
-                {
-                    System.Threading.Thread.Sleep(1000);
-                    continue;
-                }
+                // Console input is not a command interface. Do not block shutdown
+                // waiting for a newline while the environment finishes saving.
+                System.Threading.Thread.Sleep(100);
             }
 
             ConfigReader.Save(typeof(Config).Assembly);
@@ -59,6 +56,8 @@ namespace Server
 
         private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
+            // Let the environment thread finish its save/commit and stop path.
+            e.Cancel = true;
             SEnvir.Started = false;
         }
     }
