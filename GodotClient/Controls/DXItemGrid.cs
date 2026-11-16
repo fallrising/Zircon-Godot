@@ -180,8 +180,18 @@ public partial class DXItemGrid : DXControl
     /// <summary>Returns the rows required by first-fit footprint placement.</summary>
     public int GetLegacyRequiredRows(int minimumRows = 6)
     {
-        if (!UseLegacyFootprints || ItemGrid == null) return Math.Max(1, minimumRows);
-        int rows = Math.Max(minimumRows, ItemGrid.Length);
+        minimumRows = Math.Max(1, minimumRows);
+        if (!UseLegacyFootprints || ItemGrid == null || GridSize.X <= 0) return minimumRows;
+        // Stacking each fitting rectangle vertically is a safe capacity bound.
+        // Record count/slot indices do not bound the height of multi-cell items.
+        int stackedRows = 0;
+        foreach (var item in ItemGrid)
+        {
+            if (item?.Info == null) continue;
+            GetLegacyFootprint(item, out int width, out int height);
+            if (width <= GridSize.X) stackedRows = checked(stackedRows + height);
+        }
+        int rows = Math.Max(minimumRows, stackedRows);
         var occupied = new bool[GridSize.X, rows];
         int maxRow = minimumRows;
         for (int slot = 0; slot < ItemGrid.Length; slot++)
@@ -317,7 +327,13 @@ public partial class DXItemGrid : DXControl
     {
         int columns = occupied.GetLength(0);
         int rows = occupied.GetLength(1);
-        width = Math.Min(width, columns);
+        // Reject rectangles that cannot fit whole. Clipping only the search
+        // width makes MarkPlacement write beyond the occupancy array.
+        if (width > columns || width <= 0 || height <= 0)
+        {
+            x = y = -1;
+            return false;
+        }
         for (y = 0; y + height <= rows; y++)
         {
             for (x = 0; x + width <= columns; x++)
